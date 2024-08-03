@@ -86,12 +86,12 @@ if st.button("Download Data"):
 
         # Create dataframes for plotting LSTM results
         train_predict_df = pd.DataFrame(train_predict, index=data.index[time_step:train_size+time_step], columns=['Adj Close'])
-        test_predict_df = pd.DataFrame(test_predict, index=data.index[train_size+time_step+1:], columns=['Adj Close'])
+        test_predict_df = pd.DataFrame(test_predict, index=data.index[train_size+time_step+1:len(data)-1], columns=['Adj Close'])
 
         # Plot LSTM results
         st.subheader("LSTM Model")
         plot_results(data['Adj Close'][time_step:train_size+time_step], train_predict_df['Adj Close'], "Train Data - LSTM Model")
-        plot_results(data['Adj Close'][train_size+time_step+1:], test_predict_df['Adj Close'], "Test Data - LSTM Model")
+        plot_results(data['Adj Close'][train_size+time_step+1:len(data)-1], test_predict_df['Adj Close'], "Test Data - LSTM Model")
 
         # ARCH model
         st.subheader("ARCH Model")
@@ -100,9 +100,9 @@ if st.button("Download Data"):
         st.text(arch_res.summary())
 
         arch_forecast = arch_res.forecast(horizon=len(test_data))
-        arch_pred = pd.DataFrame(np.sqrt(arch_forecast.variance.values[-1, :]), index=data.index[train_size:], columns=['Adj Close'])
+        arch_pred = pd.DataFrame(np.sqrt(arch_forecast.variance.values[-1, :]), index=data.index[train_size+time_step+1:len(data)-1], columns=['Adj Close'])
         
-        plot_results(data['Adj Close'][train_size:], arch_pred['Adj Close'], "ARCH Model Forecast")
+        plot_results(data['Adj Close'][train_size+time_step+1:len(data)-1], arch_pred['Adj Close'], "ARCH Model Forecast")
 
         # GARCH model
         st.subheader("GARCH Model")
@@ -111,6 +111,6 @@ if st.button("Download Data"):
         st.text(garch_res.summary())
 
         garch_forecast = garch_res.forecast(horizon=len(test_data))
-        garch_pred = pd.DataFrame(np.sqrt(garch_forecast.variance.values[-1, :]), index=data.index[train_size:], columns=['Adj Close'])
+        garch_pred = pd.DataFrame(np.sqrt(garch_forecast.variance.values[-1, :]), index=data.index[train_size+time_step+1:len(data)-1], columns=['Adj Close'])
         
-        plot_results(data['Adj Close'][train_size:], garch_pred['Adj Close'], "GARCH Model Forecast")
+        plot_results(data['Adj Close'][train_size+time_step+1:len(data)-1], garch_pred['Adj Close'], "GARCH Model Forecast")
