@@ -25,8 +25,8 @@ end_date = st.date_input("End date", value=pd.to_datetime("2023-01-01"))
 # Function to plot results
 def plot_results(original, predicted, title):
     plt.figure(figsize=(10, 6))
-    plt.plot(original, label='Actual')
-    plt.plot(predicted, label='Predicted')
+    plt.plot(original.index, original, label='Actual')
+    plt.plot(predicted.index, predicted, label='Predicted')
     plt.title(title)
     plt.xlabel('Date')
     plt.ylabel('Adjusted Close')
@@ -81,10 +81,14 @@ if st.button("Download Data"):
         train_predict = scaler.inverse_transform(train_predict)
         test_predict = scaler.inverse_transform(test_predict)
 
+        # Create dataframes for plotting LSTM results
+        train_predict_df = pd.DataFrame(train_predict, index=data.index[time_step:train_size+time_step], columns=['Adj Close'])
+        test_predict_df = pd.DataFrame(test_predict, index=data.index[train_size+time_step+1:], columns=['Adj Close'])
+
         # Plot LSTM results
         st.subheader("LSTM Model")
-        plot_results(data['Adj Close'][time_step:train_size + time_step], train_predict, "Train Data - LSTM Model")
-        plot_results(data['Adj Close'][train_size + (2 * time_step):], test_predict, "Test Data - LSTM Model")
+        plot_results(data['Adj Close'][time_step:train_size+time_step], train_predict_df['Adj Close'], "Train Data - LSTM Model")
+        plot_results(data['Adj Close'][train_size+time_step+1:], test_predict_df['Adj Close'], "Test Data - LSTM Model")
 
         # ARCH model
         st.subheader("ARCH Model")
@@ -93,10 +97,9 @@ if st.button("Download Data"):
         st.text(arch_res.summary())
 
         arch_forecast = arch_res.forecast(horizon=len(test_data))
-        arch_pred = arch_forecast.variance.values[-1, :]
-        arch_pred = np.sqrt(arch_pred)
+        arch_pred = pd.DataFrame(np.sqrt(arch_forecast.variance.values[-1, :]), index=data.index[train_size:], columns=['Adj Close'])
         
-        plot_results(data['Adj Close'][train_size:], arch_pred, "ARCH Model Forecast")
+        plot_results(data['Adj Close'][train_size:], arch_pred['Adj Close'], "ARCH Model Forecast")
 
         # GARCH model
         st.subheader("GARCH Model")
@@ -105,7 +108,6 @@ if st.button("Download Data"):
         st.text(garch_res.summary())
 
         garch_forecast = garch_res.forecast(horizon=len(test_data))
-        garch_pred = garch_forecast.variance.values[-1, :]
-        garch_pred = np.sqrt(garch_pred)
+        garch_pred = pd.DataFrame(np.sqrt(garch_forecast.variance.values[-1, :]), index=data.index[train_size:], columns=['Adj Close'])
         
-        plot_results(data['Adj Close'][train_size:], garch_pred, "GARCH Model Forecast")
+        plot_results(data['Adj Close'][train_size:], garch_pred['Adj Close'], "GARCH Model Forecast")
